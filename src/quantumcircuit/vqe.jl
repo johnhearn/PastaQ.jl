@@ -27,6 +27,20 @@ function VQE(N::Int,D::Int,H::MPO;
   # Build circuit using the RyRz structure
   rotations  = [] 
   entanglers = []
+  r_layer = []
+  
+  # Depth 0
+  # Layer of Ry
+  for j in 1:N
+    θ = π * rand()
+    push!(r_layer,(gate="Ry",site=j,params=(θ=θ,)))
+  end
+  # Layer of Rz
+  for j in 1:N
+    ϕ = 2*π * rand()
+    push!(r_layer,(gate="Rz",site=j,params=(ϕ=ϕ,)))
+  end
+  push!(rotations,r_layer)
   for d in 1:D
     r_layer = []
     e_layer = []
@@ -79,9 +93,10 @@ function itervqe!(vqe::VQE,step::Int)
   end
   resetqubits!(vqe.psi)
   gates = []
+  addgates!(gates,vqe.rotations[1])
   for d in 1:vqe.D
-    addgates!(gates,vqe.rotations[d])
     addgates!(gates,vqe.entanglers[d])
+    addgates!(gates,vqe.rotations[d+1])
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
@@ -96,9 +111,10 @@ function itervqe!(vqe::VQE,step::Int)
   end
   resetqubits!(vqe.psi)
   gates = []
+  addgates!(gates,vqe.rotations[1])
   for d in 1:vqe.D
-    addgates!(gates,vqe.rotations[d])
     addgates!(gates,vqe.entanglers[d])
+    addgates!(gates,vqe.rotations[d+1])
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
@@ -124,9 +140,10 @@ function itervqe!(vqe::VQE,step::Int)
   # Energy evaluation
   resetqubits!(vqe.psi)
   gates = []
+  addgates!(gates,vqe.rotations[1])
   for d in 1:vqe.D
-    addgates!(gates,vqe.rotations[d])
     addgates!(gates,vqe.entanglers[d])
+    addgates!(gates,vqe.rotations[d+1])
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
