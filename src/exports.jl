@@ -34,6 +34,13 @@ export
   applygate!,
   makegate,
 
+# vqe.jl
+  VQE,
+  #Methods
+  updateangle!,
+  itervqe!,
+  runvqe,
+
 # quantumcircuit.jl
   # Methods
   qubits,
