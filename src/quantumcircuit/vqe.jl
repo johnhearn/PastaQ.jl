@@ -100,7 +100,8 @@ function itervqe!(vqe::VQE,step::Int)
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
-  Hpsi = vqe.H * psitheta
+  Hpsi = *(vqe.H,psitheta,method="naive")
+  #Hpsi = vqe.H * psitheta
   E_plus = inner(psitheta,Hpsi)
 
   # θ- evaluation
@@ -118,7 +119,8 @@ function itervqe!(vqe::VQE,step::Int)
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
-  Hpsi = vqe.H * psitheta
+  #Hpsi = vqe.H * psitheta
+  Hpsi = *(vqe.H,psitheta,method="naive")
   E_minus = inner(psitheta,Hpsi)
 
   # Restore the parameters 
@@ -147,7 +149,8 @@ function itervqe!(vqe::VQE,step::Int)
   end
   tensors = compilecircuit(vqe.psi,gates) 
   psitheta = runcircuit(vqe.psi,tensors)
-  Hpsi = vqe.H * psitheta
+  Hpsi = *(vqe.H,psitheta,method="naive")
+  #Hpsi = vqe.H * psitheta
   E = inner(psitheta,Hpsi)
   return real(E)
 end
