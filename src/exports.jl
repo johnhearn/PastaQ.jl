@@ -1,38 +1,48 @@
 export 
 # quantumgates.jl
   # Methods
-  gate_I,
-  gate_X,
-  gate_Y,
-  gate_Z,
-  gate_H,
-  gate_S,
-  gate_T,
-  gate_Rx,
-  gate_Ry,
-  gate_Rz,
-  gate_Rn,
-  gate_Sw,
-  gate_Cx,
-  gate_Cy,
-  gate_Cz,
-  prep_Xp,
-  prep_Xm,
-  prep_Yp,
-  prep_Ym,
-  prep_Zp,
-  prep_Zm,
-  meas_X,
-  meas_Y,
-  meas_Z,
-  quantumgates,
-  quantumgate,
+  gate,
 
 # circuitops.jl
   # Methods
-  getsitenumber,
   applygate!,
-  makegate,
+
+# circuits.jl
+  appendlayer!,
+  gatelayer,
+  twoqubitlayer,
+  twoqubitlayer!,
+  lineararray,
+  squarearray,
+  randomcircuit,
+
+# lpdo.jl
+  LPDO,
+  logtr,
+
+
+# quantumcircuit.jl
+  # Methods
+  qubits,
+  densitymatrix,
+  circuit,
+  choi,
+  resetqubits!,
+  compilecircuit,
+  compilecircuit!,
+  runcircuit,
+  choimatrix,
+
+# datagen.jl
+  # Methhods
+  preparationgates,
+  measurementgates,
+  randombases,
+  randompreparations,
+  generatedata!,
+  generatedata,
+  projectchoi,
+  convertdatapoint,
 
 # vqe.jl
   VQE,
@@ -41,45 +51,38 @@ export
   itervqe!,
   runvqe,
 
-# quantumcircuit.jl
+# quantumtomography,jl
   # Methods
-  qubits,
-  resetqubits!,
-  addgates!,
-  compilecircuit,
-  compilecircuit!,
-  runcircuit,
-  runcircuit!,
-  makepreparationgates,
-  makemeasurementgates,
-  generatemeasurementsettings,
-  generatepreparationsettings,
-  measure,
-  hadamardlayer!,
-  rand1Qrotationlayer!,
-  Cxlayer!,
-  randomquantumcircuit,
-
-# statetomography,jl
-  # Methods
-  initializeQST,
+  initializetomography,
   lognormalize!,
   nll,
   gradlogZ,
   gradnll,
   gradients,
+  tomography,
   fidelity,
-  getdensityoperator,
-  statetomography!,
-
+  fullfidelity,
+  frobenius_distance,
+  
 # optimizers/
   Optimizer,
-  Sgd,
+  SGD,
+  AdaGrad,
+  AdaDelta,
+  Adam,
+  AdaMax,
   # Methods
   update!,
 
+# observer.jl
+  TomographyObserver,
+  # Methods
+  measure!,
+  writeobserver,
+  
 # utils.jl
   # Methods
-  loadtrainingdataQST,
+  savedata,
+  loaddata,
   fullvector,
   fullmatrix

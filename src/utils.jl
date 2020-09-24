@@ -1,96 +1,102 @@
-function loadtrainingdataQST(input_path::String)
-  data_file = h5open(input_path,"r")
-  samples = read(data_file,"samples")
-  bases = read(data_file,"bases")
-  target = read(data_file,"psi",MPS)
-  return samples,bases,target
-end
+"""
+    savedata(model::Union{MPS,MPO},
+             data::Array,output_path::String)
 
-function fullvector(mps::MPS;order="reverse")
-  if length(mps) == 1
-    return array(mps[1])
-  else
-    N = length(mps)
-    if order == "reverse"
-      vector = mps[N] * mps[N-1]
-      C = combiner(firstind(vector,tags="n=$N"),firstind(vector,tags="n=$(N-1)"),tags="comb")
-      vector = vector * C
-      for j in reverse(1:N-2)
-        vector = vector * mps[j]
-        C = combiner(firstind(vector,tags="comb"),firstind(vector,tags="n=$j"),tags="comb")
-        vector = vector * C
-      end
-    elseif order == "native"
-      vector = mps[1] * mps[2]
-      C = combiner(firstind(vector,tags="n=1"),firstind(vector,tags="n=2"),tags="comb")
-      vector = vector * C
-      for j in 3:N
-        vector = vector * mps[j]
-        C = combiner(firstind(vector,tags="comb"),firstind(vector,tags="n=$j"),tags="comb")
-        vector = vector * C
-      end
-    end
-    return array(vector)
+Save data and model on file:
+
+# Arguments:
+  - `model`: MPS or MPO
+  - `data`: array of measurement data
+  - `output_path`: path to file
+"""
+function savedata(model::Union{MPS,MPO},
+                  data::Array,output_path::String)
+  h5rewrite(output_path) do fout
+    write(fout,"data",data)
+    write(fout,"model",model)
   end
 end
 
-function fullmatrix(tensor::ITensor;order="reverse")
-  N = Int(length(inds(tensor))/2)
-  if ( N == 1)
-    return array(tensor)
-  else
-    indices = inds(tensor,plev=0)
-    if order == "reverse"
-      Cb = combiner(prime(indices[N]),prime(indices[N-1]),tags="bra")
-      Ck = combiner(indices[N],indices[N-1],tags="ket")
-      matrix = tensor * Cb * Ck
-      for j in reverse(1:N-2)
-        Cb = combiner(firstind(matrix,tags="bra"),prime(indices[j]))
-        Ck = combiner(firstind(matrix,tags="ket"),indices[j])
-        matrix = tensor * Cb * Ck
-      end
-    elseif order == "native"
-      Cb = combiner(prime(indices[1]),prime(indices[2]),tags="bra")
-      Ck = combiner(indices[1],indices[2],tags="ket")
-      matrix = tensor * Cb * Ck
-      for j in 3:N
-        Cb = combiner(firstind(matrix,tags="bra"),prime(indices[j]))
-        Ck = combiner(firstind(matrix,tags="ket"),indices[j])
-        matrix = tensor * Cb * Ck
-      end
-    end
-    return array(matrix)
+"""
+    savedata(model::Union{MPS,MPO},
+             data::Array,output_path::String)
+
+Save data and model on file:
+
+# Arguments:
+  - `model`: MPS or MPO
+  - `data_in` : array of preparation states
+  - `data_out`: array of measurement data
+  - `output_path`: path to file
+"""
+function savedata(model::Union{MPS,MPO},
+                  data_in::Array,data_out::Array,
+                  output_path::String)
+  h5rewrite(output_path) do fout
+    write(fout,"data_in",data_in)
+    write(fout,"data_out",data_out)
+    write(fout,"model",model)
   end
 end
 
+"""
+    loaddata(input_path::String;process::Bool=false)
 
-function fullmatrix(mpo::MPO;order="reverse")
-  if length(mpo) == 1
-    return array(mpo[1])
+Load data and model from file:
+
+# Arguments:
+  - `input_path`: path to file
+  - `process`: if `true`, load input/output data 
+"""
+
+function loaddata(input_path::String;process::Bool=false)
+  fin = h5open(input_path,"r")
+  
+  g = g_open(fin,"model")
+  typestring = read(attrs(g)["type"])
+  modeltype = eval(Meta.parse(typestring))
+
+  model = read(fin,"model",modeltype)
+  
+  if process
+    data_in = read(fin,"data_in")
+    data_out = read(fin,"data_out")
+    return model,data_in,data_out
   else
-    N = length(mpo)
-    if order == "reverse"
-      matrix = mpo[N] * mpo[N-1]
-      Cb = combiner(inds(matrix,tags="n=$N",plev=0)[1],inds(matrix,tags="n=$(N-1)",plev=0)[1],tags="bra")      
-      Ck = combiner(inds(matrix,tags="n=$N",plev=1)[1],inds(matrix,tags="n=$(N-1)",plev=1)[1],tags="ket")      
-      matrix = matrix * Cb * Ck
-      for j in reverse(1:N-2)
-        matrix = matrix * mpo[j]
-        Cb = combiner(firstind(matrix,tags="bra"),inds(matrix,tags="n=$j",plev=0)[1],tags="bra")
-        Ck = combiner(firstind(matrix,tags="ket"),inds(matrix,tags="n=$j",plev=1)[1],tags="ket")
-        matrix = matrix * Cb * Ck
-      end
-    elseif order == "native"
-      #TODO
-    #  vector = mps[1] * mps[2]
-    #  C = combiner(firstind(vector,tags="n=1"),firstind(vector,tags="n=2"),tags="comb")
-    #  vector = vector * C
-    #  for j in 3:N
-    #    vector = vector * mps[j]
-    #    C = combiner(firstind(vector,tags="comb"),firstind(vector,tags="n=$j"),tags="comb")
-    #    vector = vector * C
-    #  end
-    end
-    return array(matrix)
+    data = read(fin,"data")
+    return model,data
   end
+  close(fout)
 end
+
+"""
+    fullvector(M::MPS; reverse::Bool = true)
+
+Extract the full vector from an MPS
+"""
+function fullvector(M::MPS; reverse::Bool = true)
+  s = siteinds(M)
+  if reverse
+    s = Base.reverse(s)
+  end
+  C = combiner(s...)
+  Mvec = prod(M) * dag(C)
+  return array(Mvec)
+end
+
+"""
+    fullmatrix(M::MPO; reverse::Bool = true)
+
+Extract the full matrix from an MPO
+"""
+function fullmatrix(M::MPO; reverse::Bool = true)
+  s = firstsiteinds(M; plev = 0)
+  if reverse
+    s = Base.reverse(s)
+  end
+  C = combiner(s...)
+  Mmat = prod(M) * dag(C) * C'
+  c = combinedind(C)
+  return array(permute(Mmat, c', c))
+end
+

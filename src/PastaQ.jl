@@ -8,11 +8,17 @@ using HDF5
 using Printf
 
 include("exports.jl")
+include("lpdo.jl")
+
+include("circuits/gates.jl")
+include("circuits/circuits.jl")
+include("circuits/runcircuit.jl")
+include("circuits/datagen.jl")
+include("circuits/vqe.jl")
+
+include("optimizers.jl")
+include("observer.jl")
 include("utils.jl")
-include("quantumcircuit/quantumgates.jl")
-include("quantumcircuit/circuitops.jl")
-include("quantumcircuit/quantumcircuit.jl")
-include("quantumcircuit/vqe.jl")
-include("optimizers/sgd.jl")
-include("statetomography.jl")
+include("tomography.jl")
+
 end # module
