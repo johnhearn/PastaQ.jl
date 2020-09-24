@@ -10,6 +10,11 @@ struct VQE
   seed::Int
 end
 
+"""
+    VQE
+
+Variational Quantum Eigensolver
+"""
 function VQE(H::MPO,D::Int;
              γ::Float64=0.1,
              c::Float64=0.01,
@@ -61,6 +66,11 @@ function VQE(H::MPO,D::Int;
   return VQE(H,D,rotations,entanglers,γ,c,α,η)
 end
 
+"""
+    updateangle!(gate::Tuple,eps::Float64)
+
+Update single-qubit rotation gate angle.
+"""
 function updateangle!(gate::Tuple,eps::Float64)
   old_angle = gate[3][keys(gate[3])[1]]
   new_angle = old_angle + eps
@@ -68,6 +78,11 @@ function updateangle!(gate::Tuple,eps::Float64)
   return gate
 end
 
+"""
+    itervqe!(vqe::VQE,step::Int)
+
+Performs one step of VQE.
+"""
 function itervqe!(vqe::VQE,step::Int)
   N = length(vqe.H)
   ψ0 = qubits(N)
