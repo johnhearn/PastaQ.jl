@@ -19,6 +19,7 @@ export
 # lpdo.jl
   LPDO,
   logtr,
+  tr,
 
 
 # quantumcircuit.jl
@@ -54,16 +55,20 @@ export
 # quantumtomography,jl
   # Methods
   initializetomography,
-  lognormalize!,
+  normalize!,
   nll,
   gradlogZ,
   gradnll,
   gradients,
   tomography,
+
+# distances.jl
+  # Methods
   fidelity,
   fullfidelity,
   frobenius_distance,
-  
+  fidelity_bound,
+
 # optimizers/
   Optimizer,
   SGD,

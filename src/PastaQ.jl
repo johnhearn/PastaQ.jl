@@ -18,7 +18,8 @@ include("circuits/vqe.jl")
 
 include("optimizers.jl")
 include("observer.jl")
-include("utils.jl")
+include("distances.jl")
 include("tomography.jl")
+include("utils.jl")
 
 end # module
