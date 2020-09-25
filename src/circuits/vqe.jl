@@ -7,7 +7,6 @@ struct VQE
   c::Float64 #c in IBM paper
   α::Float64 #alpha in BM paper
   η::Float64 #a in IBM paper
-  seed::Int
 end
 
 """
