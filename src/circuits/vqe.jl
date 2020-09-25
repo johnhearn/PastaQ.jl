@@ -1,6 +1,6 @@
 struct VQE
   H::MPO
-  D::Int
+  depth::Int
   rotations::Array
   entanglers::Array
   γ::Float64 #gamma in IBM paper
@@ -14,7 +14,7 @@ end
 
 Variational Quantum Eigensolver
 """
-function VQE(H::MPO,D::Int;
+function VQE(H::MPO,depth::Int;
              γ::Float64=0.1,
              c::Float64=0.01,
              α::Float64=0.6,
@@ -24,7 +24,7 @@ function VQE(H::MPO,D::Int;
   # Build circuit using the RyRz structure
   rotations  = [] 
   entanglers = []
-  r_layer = []
+  r_layer    = []
   
   # Depth 0
   # Layer of Ry
@@ -38,7 +38,7 @@ function VQE(H::MPO,D::Int;
     push!(r_layer,("Rz",j,(ϕ=ϕ,)))
   end
   push!(rotations,r_layer)
-  for d in 1:D
+  for d in 1:depth
     r_layer = []
     e_layer = []
     # Layer of Ry
@@ -62,7 +62,7 @@ function VQE(H::MPO,D::Int;
     push!(entanglers,e_layer)
   end
   
-  return VQE(H,D,rotations,entanglers,γ,c,α,η)
+  return VQE(H,depth,rotations,entanglers,γ,c,α,η)
 end
 
 """
@@ -84,10 +84,10 @@ Performs one step of VQE.
 """
 function itervqe!(vqe::VQE,step::Int)
   N = length(vqe.H)
-  ψ0 = qubits(N)
+  ψ = qubits(N)
   for j in 1:N
-    replaceind!(vqe.H[j],inds(vqe.H[j],"Site")[1],firstind(ψ0[j],"Site"))
-    replaceind!(vqe.H[j],inds(vqe.H[j],"Site")[2],prime(firstind(ψ0[j],"Site")))
+    replaceind!(vqe.H[j],inds(vqe.H[j],"Site")[1],firstind(ψ[j],"Site"))
+    replaceind!(vqe.H[j],inds(vqe.H[j],"Site")[2],prime(firstind(ψ[j],"Site")))
   end
   
   Δ_step = [] 
@@ -99,47 +99,40 @@ function itervqe!(vqe::VQE,step::Int)
     push!(Δ_step,Δ_layer)
   end
   
-  # θ+ evaluation
-  for d in 1:size(vqe.rotations)[1]
-    for r in 1:size(vqe.rotations[d])[1]
-      vqe.rotations[d][r] = updateangle!(vqe.rotations[d][r],Δ_step[d][r])
+ # θ+ evaluation
+ rotations = copy(vqe.rotations)
+ for d in 1:size(rotations)[1]
+    for r in 1:size(rotations[d])[1]
+      rotations[d][r] = updateangle!(rotations[d][r],Δ_step[d][r])
     end
   end
   gates = Tuple[]
 
-  addgates!(gates,vqe.rotations[1])
-  for d in 1:vqe.D
+  addgates!(gates,rotations[1])
+  for d in 1:vqe.depth
     addgates!(gates,vqe.entanglers[d])
-    addgates!(gates,vqe.rotations[d+1])
+    addgates!(gates,rotations[d+1])
   end
-  ψθ = runcircuit(ψ0,gates)
-  Hψ = *(vqe.H,ψθ,method="naive")
-  E_plus = inner(ψθ,Hψ)
+  ψθ = runcircuit(ψ,gates)
+  E_plus = inner(ψθ,vqe.H,ψθ)
 
   # θ- evaluation
-  for d in 1:size(vqe.rotations)[1]
-    for r in 1:size(vqe.rotations[d])[1]
-      vqe.rotations[d][r] = updateangle!(vqe.rotations[d][r],-2*Δ_step[d][r])
+  rotations = copy(vqe.rotations)
+  for d in 1:size(rotations)[1]
+    for r in 1:size(rotations[d])[1]
+      rotations[d][r] = updateangle!(rotations[d][r],-2*Δ_step[d][r])
     end
   end
   
   gates = Tuple[]
-  addgates!(gates,vqe.rotations[1])
-  for d in 1:vqe.D
+  addgates!(gates,rotations[1])
+  for d in 1:vqe.depth
     addgates!(gates,vqe.entanglers[d])
-    addgates!(gates,vqe.rotations[d+1])
+    addgates!(gates,rotations[d+1])
   end
-  ψθ = runcircuit(ψ0,gates)
-  Hψ = *(vqe.H,ψθ,method="naive")
-  E_minus = inner(ψθ,Hψ)
+  ψθ = runcircuit(ψ,gates)
+  E_minus = inner(ψθ,vqe.H,ψθ)
 
-  # Restore the parameters 
-  for d in 1:size(vqe.rotations)[1]
-    for r in 1:size(vqe.rotations[d])[1]
-      vqe.rotations[d][r] = updateangle!(vqe.rotations[d][r],Δ_step[d][r])
-    end
-  end
- 
   ## Update
   for d in 1:size(vqe.rotations)[1]
     for r in 1:size(vqe.rotations[d])[1]
@@ -152,13 +145,12 @@ function itervqe!(vqe::VQE,step::Int)
   # Energy evaluation
   gates = Tuple[]
   addgates!(gates,vqe.rotations[1])
-  for d in 1:vqe.D
+  for d in 1:vqe.depth
     addgates!(gates,vqe.entanglers[d])
     addgates!(gates,vqe.rotations[d+1])
   end
-  ψθ = runcircuit(ψ0,gates) 
-  Hpsi = *(vqe.H,ψθ,method="naive")
-  E = inner(ψθ,Hψ)
+  ψθ = runcircuit(ψ,gates) 
+  E = inner(ψθ,vqe.H,ψθ)
   return real(E)
 end
 
