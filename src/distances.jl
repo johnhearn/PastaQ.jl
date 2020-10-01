@@ -79,18 +79,21 @@ Compute the trace norm of the difference between two LPDOs and MPOs:
 
 `T(ρ,σ) = sqrt(trace[(ρ̃-σ̃)†(ρ̃-σ̃)])`
 
-where `ρ̃` and `σ̃` are the normalized density matrices.
+where `ρ̃` and `σ̃` are the normalized density matrices (normalized by the Frobenius norm).
 """
 function frobenius_distance(ρ::Union{MPO, LPDO},
                             σ::Union{MPO, LPDO})
-  ρ̃ = copy(ρ)
-  σ̃ = copy(σ)
-  normalize!(ρ̃)
-  normalize!(σ̃)
-  distance  = real(inner(ρ̃, ρ̃))
-  distance += real(inner(σ̃, σ̃))
-  distance -= 2 * real(inner(ρ̃, σ̃))
-  return sqrt(distance)
+  #ρ̃ = copy(ρ)
+  #σ̃ = copy(σ)
+  #normalize!(ρ̃)
+  #normalize!(σ̃)
+  #distance  = real(inner(ρ, ρ))
+  #distance += real(inner(σ, σ))
+  #distance -= 2 * real(inner(ρ, σ))
+  norm_ρ = sqrt(real(inner(ρ, ρ)))
+  norm_σ = sqrt(real(inner(σ, σ)))
+  inner_ρ̃σ̃ = real(inner(ρ, σ)) / (norm_ρ * norm_σ)
+  return sqrt(2 - 2 * inner_ρ̃σ̃)
 end
 
 """

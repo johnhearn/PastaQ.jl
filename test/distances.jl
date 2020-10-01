@@ -60,14 +60,14 @@ end
 
   ρ_mat = PastaQ.fullmatrix(ρ_mpo)
   σ_mat = PastaQ.fullmatrix(σ_mpo)
-  Kρ = tr(ρ_mat) 
-  Kσ = tr(σ_mat) 
+  Kρ = norm(ρ_mat) # tr(ρ_mat) 
+  Kσ = norm(σ_mat) # tr(σ_mat) 
   
   δ = ρ_mat/Kρ - σ_mat/Kσ
 
-  T = sqrt(tr(conj(transpose(δ)) * δ))
+  T = norm(δ) #sqrt(tr(conj(transpose(δ)) * δ))
 
-  F = frobenius_distance(ρ_mpo,σ_mpo)
+  F = frobenius_distance(ρ_mpo, σ_mpo)
   @test T ≈ F
     
   Random.seed!(1111)
@@ -78,16 +78,15 @@ end
 
   ρ_mat = PastaQ.fullmatrix(ρ_mpo)
   σ_mat = PastaQ.fullmatrix(σ_mpo)
-  Kρ = tr(ρ_mat) 
-  Kσ = tr(σ_mat) 
+  Kρ = norm(ρ_mat) #tr(ρ_mat)
+  Kσ = norm(σ_mat) #tr(σ_mat)
   
   δ = ρ_mat/Kρ - σ_mat/Kσ
 
-  T = sqrt(tr(conj(transpose(δ)) * δ))
+  T = norm(δ) #sqrt(tr(conj(transpose(δ)) * δ))
 
   F = frobenius_distance(ρ, σ_mpo)
   @test T ≈ F
-
 
   Random.seed!(1111)
   σ = randomstate(ψ1;mixed=true,χ=2,ξ=2)
@@ -97,12 +96,12 @@ end
 
   ρ_mat = PastaQ.fullmatrix(ρ_mpo)
   σ_mat = PastaQ.fullmatrix(σ_mpo)
-  Kρ = tr(ρ_mat) 
-  Kσ = tr(σ_mat) 
+  Kρ = norm(ρ_mat) #tr(ρ_mat) 
+  Kσ = norm(σ_mat) #tr(σ_mat) 
   
   δ = ρ_mat/Kρ - σ_mat/Kσ
 
-  T = sqrt(tr(conj(transpose(δ)) * δ))
+  T = norm(δ) #sqrt(tr(conj(transpose(δ)) * δ))
 
   F = frobenius_distance(ρ_mpo,σ)
   @test T ≈ F
@@ -117,12 +116,12 @@ end
 
   ρ_mat = PastaQ.fullmatrix(ρ_mpo)
   σ_mat = PastaQ.fullmatrix(σ_mpo)
-  Kρ = tr(ρ_mat) 
-  Kσ = tr(σ_mat) 
+  Kρ = norm(ρ_mat) #tr(ρ_mat) 
+  Kσ = norm(σ_mat) #tr(σ_mat) 
   
   δ = ρ_mat/Kρ - σ_mat/Kσ
 
-  T = sqrt(tr(conj(transpose(δ)) * δ))
+  T = norm(δ) #sqrt(tr(conj(transpose(δ)) * δ))
 
   F = frobenius_distance(ρ,σ)
   @test T ≈ F
